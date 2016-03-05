@@ -10,4 +10,4 @@ common.o:
 lab: main.o common.o
 	gcc -o $(bin_dir)/lab $(bin_dir)/main.o $(bin_dir)/common.o
 clean:
-	rm -rf $(bin_dir)/*
+	rm -rf $(bin_dir)/*.o

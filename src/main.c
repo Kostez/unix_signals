@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-
+#include <unistd.h>
 #include "common.h"
 
 void usage();
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 				}
 				if(i==modes_count)
 				{
-					printf("[E]: Unknown mode!\n");
+					fprintf(stderr,"[E]: Unknown mode!\n");
 					usage();
 				}
 				break;
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 			
 			default:
 			{
-				printf("found unknown option\n");
+				fprintf(stderr,"[E]: Found unknown option\n");
 				usage();
 				break;
 			};
@@ -90,12 +90,12 @@ int main(int argc, char **argv)
 		{
 			if(cmd.usignal<0 || cmd.usignal>31)
 			{
-				printf("[E]: Invalid signal value\n");
+				fprintf(stderr,"[E]: Invalid signal value\n");
 				usage();
 			}
 			if(cmd.pid == 1000000)
 			{
-				printf("[E]: pid is required for mode kill\n");
+				fprintf(stderr,"[E]: pid is required for mode kill\n");
 				usage();
 			}
 			break;
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 		{
 			if(cmd.amount == 1000000)
 			{
-				printf("[E]: amount is required for mode posix\n");
+				fprintf(stderr,"[E]: amount is required for mode posix\n");
 				usage();				
 			}
 			break;
@@ -113,7 +113,10 @@ int main(int argc, char **argv)
 	
 	mode_init(&cmd);
 	
-	while(1){}
+	while(1)
+	{
+		sleep(1);
+	}
 	return 0;
 }
 

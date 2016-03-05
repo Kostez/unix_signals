@@ -71,6 +71,11 @@ void sign_handler_posix(int signo, siginfo_t *siginf, void *ptr)
 		if(first==NULL)
 		{
 			struct list *cur = (struct list*)malloc(sizeof(struct list));
+			if(cur==NULL)
+			{
+				perror(NULL);
+				exit(EXIT_FAILURE);
+			}
 			memcpy(&(cur->siginfo),siginf,sizeof(siginfo_t));
 			cur->next = NULL;
 			first = cur;
@@ -79,6 +84,11 @@ void sign_handler_posix(int signo, siginfo_t *siginf, void *ptr)
 		else
 		{
 			struct list *cur = (struct list*)malloc(sizeof(struct list));
+			if(cur==NULL)
+			{
+				perror(NULL);
+				exit(EXIT_FAILURE);
+			}
 			memcpy(&(cur->siginfo),siginf,sizeof(siginfo_t));
 			cur->next = NULL;
 			last->next=cur;
@@ -107,18 +117,26 @@ void mode_init(params *cmd)
 	
 	sa.sa_flags = SA_SIGINFO|SA_NOCLDWAIT;
 	sa.sa_sigaction = sign_handler;
-	/*
-	 * assign signal to handler
-	 */
-	sigaction(SIGTERM, &sa, 0);
 	
 	switch(cmd->mode)
 	{
 		case m_std:
 		{
-			sigaction(SIGHUP, &sa, 0);
-			sigaction(SIGUSR1, &sa, 0);
-			sigaction(SIGUSR2, &sa, 0);
+			if(sigaction(SIGHUP, &sa, 0)==-1)
+			{
+				perror(NULL);
+				exit(EXIT_FAILURE);
+			}
+			if(sigaction(SIGUSR1, &sa, 0)==-1)
+			{
+				perror(NULL);
+				exit(EXIT_FAILURE);
+			}
+			if(sigaction(SIGUSR2, &sa, 0)==-1)
+			{
+				perror(NULL);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		};
 		case m_posix:
@@ -126,9 +144,17 @@ void mode_init(params *cmd)
 			sa.sa_sigaction = sign_handler_posix;
 			for(int i=SIGRTMIN; i<=SIGRTMAX; i++)
 			{
-				sigaction(i, &sa, 0);
+				if(sigaction(i, &sa, 0)==-1)
+				{
+					perror(NULL);
+					exit(EXIT_FAILURE);
+				}
 			}
-			sigaction(SIGCHLD, &sa, 0);
+			if(sigaction(SIGCHLD, &sa, 0)==-1)
+			{
+				perror(NULL);
+				exit(EXIT_FAILURE);
+			}
 			int diap = SIGRTMAX - SIGRTMIN;
 			parent = getpid();
 			child = fork();			
@@ -136,7 +162,7 @@ void mode_init(params *cmd)
 			{
 				case -1:
 				{
-					printf("[E]: Can't fork\n");
+					perror(NULL);
 					exit(EXIT_FAILURE);
 					break;
 				};
@@ -155,7 +181,7 @@ void mode_init(params *cmd)
 						sigqueue(parent,signo,qval1);
 						printf("|%5d|%7d|%8d|%7d|%7d|\n",i+1,child,parent,signo,qval1.sival_int);
 					}
-					sleep(3);
+					sleep(1);
 					exit(3);
 				};
 				default:
@@ -167,9 +193,9 @@ void mode_init(params *cmd)
 		};
 		case m_kill:
 		{
-			if(kill(cmd->pid, cmd->usignal)==1)
+			if(kill(cmd->pid, cmd->usignal)==-1)
 			{
-				printf("[E]: Error sending signal\n");
+				perror(NULL);
 				exit(EXIT_FAILURE);
 			}
 			exit(EXIT_SUCCESS);
@@ -177,13 +203,17 @@ void mode_init(params *cmd)
 		};
 		case m_child:
 		{
-			sigaction(SIGCHLD, &sa, 0);
+			if(sigaction(SIGCHLD, &sa, 0)==-1)
+			{
+				perror(NULL);
+				exit(EXIT_FAILURE);
+			}
 			pid_t child_pid = fork();
 			switch(child_pid)
 			{
 				case -1:
 				{
-					printf("[E]: Can't fork\n");
+					perror(NULL);
 					exit(EXIT_FAILURE);
 					break;
 				};
@@ -201,22 +231,34 @@ void mode_init(params *cmd)
 			break;
 		};
 		case m_pipe:
-		{
-			sigaction(SIGPIPE, &sa, 0);
+		{			
+			if(sigaction(SIGPIPE, &sa, 0)==-1)
+			{
+				perror(NULL);
+				exit(EXIT_FAILURE);
+			}
 			int fd[2];
-			pipe(fd);
+			if(pipe(fd)==-1)
+			{
+				perror(NULL);
+				exit(EXIT_FAILURE);
+			}
 			pid_t child_pid = fork();
 			switch(child_pid)
 			{
 				case -1:
 				{
-					printf("[E]: Can't fork\n");
+					perror(NULL);
 					exit(EXIT_FAILURE);
 					break;
 				};
 				case 0: //fork
 				{
-					close(fd[1]); //close output
+					if(close(fd[1])==-1) //close output
+					{
+						perror(NULL);
+						exit(EXIT_FAILURE);
+					}
 					srand(time(0));
 					sleep(rand()%10+1);
 					exit(3);
@@ -224,10 +266,18 @@ void mode_init(params *cmd)
 				};
 				default:
 				{
-					close(fd[0]); //close input
+					if(close(fd[0])==-1)//close input
+					{
+						perror(NULL);
+						exit(EXIT_FAILURE);
+					}
 					while(1)
 					{
-						write(fd[1],"0",1);
+						if(write(fd[1],"0",1)==-1)
+						{
+							perror(NULL);
+							exit(EXIT_FAILURE);
+						}
 						sleep(1);
 					}
 					break;
