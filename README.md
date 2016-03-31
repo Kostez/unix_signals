@@ -12,6 +12,7 @@ Run with parameters:
 
 1. ./bin/lab --mode=std
 Handling standart signals(SIGUSR1, SIGUSR2, SIGHUP)
+
 Output: SIGNO, PID and GID of sending process.
 
 2. ./bin/lab --mode=child
@@ -27,10 +28,8 @@ Output of transmitter(child) process:
 |  N  | MYPID | PARENT | SIGNO | VALUE |
 
 4. ./bin/lab --mode=kill --signal=SIGNO --pid=PID
-Sending signal SIGNO to process with id PID
 
 5. ./bin/lab --mode=pipe
-Handling SIGPIPE signal. 
 
 
 
